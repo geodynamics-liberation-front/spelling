@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="100"
+   height="100"
+   viewBox="0 0 100 100"
+   id="svg2"
+   version="1.1">
+<script type="text/javascript">
+    <![CDATA[
+    function set(n)
+    {
+		var theta=-120.0+(240.0*n)
+		document.getElementById('neddle').setAttribute('transform','rotate('+theta+',50,50)')
+    }
+    ]]>
+</script>
+  <defs
+     id="defs4" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1">
+    <ellipse
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path4136"
+       cx="50"
+       cy="50"
+       rx="48"
+       ry="48" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 80.310889,67.500000 87.239092,71.000000 M 85.000000,50.000000 93.000000,50.000000 M 80.310889,32.500000 87.239092,29.000000 M 67.500000,19.689111 71.500000,13.626933 M 50.000000,15.000000 50.000000,8.000000 M 32.500000,19.689111 28.500000,13.626933 M 19.689111,32.500000 12.760908,29.000000 M 15.000000,50.000000 7.000000,50.000000 M 19.689111,67.500000 12.760908,71.000000 "
+       id="ticks" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 50,55, 50,22"
+       id="neddle" />
+  </g>
+  <text
+     id="empty"
+     y="82.362206"
+     x="18.773193"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.5px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     xml:space="preserve"><tspan
+       y="82.362206"
+       x="18.773193"
+       id="tspan5798">E</tspan></text>
+  <text
+     id="full"
+     y="82.362206"
+     x="74.492073"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:36px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     xml:space="preserve"><tspan
+       style="font-size:12.5px"
+       y="82.362206"
+       x="74.492073"
+       id="tspan5802">F</tspan></text>
+</svg>

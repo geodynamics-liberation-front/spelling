@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Spelling</title>
+			<script src="js/jquery.js"></script>
+			<script src="js/jquery-ui/jquery-ui.js"></script>
+<style>
+* {
+	padding: 0;
+	margin: 0;
+}
+
+@font-face {
+	font-family: 'Gotham';
+	src: local('Gotham'), local('Gotham-Book'), url(font/gotham-book.woff);
+}
+
+@font-face {
+	font-family: 'Roboto';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Roboto'), local('Roboto-Regular'), url(font/roboto-normal-400.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Dancing Script';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Dancing Script'), local('DancingScript'), url(font/dancing_script.ttf) format('truetype');
+}
+
+@media print {
+	#wordlist {
+		font-size: 8pt;
+	}
+
+	#guage {
+		display: none;
+	}
+		
+}
+
+body {
+	padding: 30px;
+	font-family: 'Roboto', sans-serif;
+}
+
+#correct {
+	font-family: 'Roboto', sans-serif;
+	color: #c3c3c3;
+	font-size: 38pt;
+	text-align: center;
+}
+
+#attempt {
+	font-family: 'Roboto', sans-serif;
+	color: #737373;
+	font-size: 48pt;
+	text-align: center;
+	width: 100%;
+}
+
+#icon-tray {
+	height: 100px;
+	text-align: center;
+}
+
+#spelling {
+	display: none;
+}
+
+.icon {
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	position: absolute;
+	margin-left: -50px;
+}
+
+#repeat {
+	opacity: 1.0;
+}
+
+#check {
+	opacity: 0.0;
+}
+
+#wordlist { margin: 0; padding: 0; border-collapse: collapse}
+#wordlist tr { margin: 3px; padding: 0.2em; padding-left: 1.5em; font-size: 1.4em; cursor: pointer; border: 1px solid black; vertical-align: baseline}
+#wordlist td { padding: 0.2em; }
+#wordlist .print { padding-left: .5em; font-family: 'Roboto' }
+#wordlist .cursive { padding-left: 1em; font-family: 'Dancing Script'; font-size: 1.6em; }
+</style>
+<script>
+var tts_url="tts.php"
+
+// word list
+var word
+var word_ndx
+var words
+var deck
+var success_count=2
+var word_sounds={}
+
+// score
+score=0
+correct_count=0
+incorrect_count=0
+streak=0
+longest_streak=0
+
+// sound fx
+var fx_volume=0.5
+var correct
+var incorrect
+var finished
+
+function make_audio(url) {
+	var audio=document.createElement('audio')
+	audio.src=url
+	audio.load()
+	return audio
+}
+
+function word_list(list) {
+	words=list
+	deck=[]
+	wordlist=$('#wordlist tbody')
+	for( var i=0; i<words.length; i++ )
+	{
+		for(var j=0; j<success_count; j++ )
+		{
+			deck[i*success_count+j]=i;
+		}
+		var tr=document.createElement('tr')
+		wordlist.append(tr)
+
+		var p=document.createElement('td')
+		p.innerHTML=words[i]
+		p.className="print"
+		tr.appendChild(p)
+
+		var c=document.createElement('td')
+		c.innerHTML=words[i]
+		c.className="cursive"
+		tr.appendChild(c)
+	}
+	
+}
+
+function repeat() {
+	say(word)
+}
+
+function say(w) {
+	var audio
+	if( !(w in word_sounds) )
+	{
+		console.log("New word: "+w)
+		audio=make_audio(tts_url+'?'+w)
+		word_sounds[w]=audio
+	}
+	else
+	{
+		audio=word_sounds[w]
+	}
+	audio.play()
+}
+
+function keydown(evt)
+{
+	if(evt.keyCode==8) 
+	{ 
+		evt.preventDefault()
+		str=document.getElementById('attempt').innerHTML
+		str=str.substring(0,str.length-1)	
+		if( str.length== 0 )
+		{
+			str='\u00A0'
+		}
+		document.getElementById('attempt').innerHTML=str
+		return true; 
+	}
+}
+
+function keypress(evt)
+{
+	w=evt.which
+	console.log(w)
+	if( w==13 )
+	{
+		check()
+	}
+	else
+	{
+		var str=document.getElementById('attempt').innerText+String.fromCharCode(evt.which).trim()
+		if( str.length==0 ) { str='\u00A0' }
+		document.getElementById('attempt').innerHTML=str
+	}
+}
+
+function next_word()
+{
+	if( deck.length==0 )
+	{
+		finished.play()
+		return;
+	}
+	document.getElementById('attempt').innerHTML='\u00A0'
+
+	word_ndx=Math.floor(Math.random()*deck.length)
+	word=words[deck[word_ndx]]
+	console.log(word)
+	say(word)
+}
+
+function check()
+{
+	var str=document.getElementById('attempt').innerText.trim()
+	console.log(str)
+	console.log(word)
+	if( str==word )
+	{
+		document.getElementById('correct').innerHTML='\u00A0';
+		if( document.getElementById('repeat').style.opacity==0.0) 
+		{
+			document.getElementById('repeat').style.opacity=1.0
+			document.getElementById('check').style.opacity=0.0
+		}
+		else
+		{
+			deck.splice(word_ndx,1)
+		}
+		correct.play()
+		// Remove that instance out of the deck
+	}
+	else
+	{
+		incorrect.play()
+	}
+}
+
+function check_sort(event,ui)
+{
+	var w=[]
+	var s=0
+	$("#wordlist .print").each(function(ndx,val) { w.push(val.innerText) })
+	for( var i=0; i<w.length; i++ )
+	{
+		if( i>0 && i<w.length-1 )
+		{
+			if( w[i-1]<w[i] && w[i]<w[i+1] )
+			{
+				s++
+			}
+		}
+		else if( i==0 )
+		{
+			if( w[i]<w[i+1] )
+			{
+				s++
+			}
+		}
+		else
+		{
+			if( w[i-1]<w[i] )
+			{
+				s++
+			}
+		}
+		
+	}
+	console.log(s+"/"+w.length)
+	guage.set(s/w.length)
+}
+
+function set_volume()
+{
+	correct.volume=fx_volume
+	incorrect.volume=fx_volume*.5
+}
+
+function correct_ended(e)
+{
+	next_word()
+}
+
+function incorrect_ended(e)
+{
+	document.getElementById('repeat').style.opacity=0.0
+	document.getElementById('check').style.opacity=1.0
+	document.getElementById('correct').innerHTML=word
+	document.getElementById('attempt').innerHTML='\u00A0'
+}
+
+function init()
+{
+	// Setup the icons
+	document.getElementById('repeat').addEventListener('click',repeat)
+	document.getElementById('check').addEventListener('click',repeat)
+	document.addEventListener('keypress',keypress)
+	document.addEventListener('keydown',keydown)
+	// Load the sounds
+	correct=make_audio('sounds/ding.mp3')
+	incorrect=make_audio('sounds/quackquack.mp3')
+	finished=make_audio('sounds/tripple-ding.mp3')
+	// Add the event listeners
+	correct.addEventListener('ended',correct_ended)
+	incorrect.addEventListener('ended',incorrect_ended)
+	set_volume()
+	word_list(week24)
+	init_svg()
+	next_word()
+}
+
+function init_svg()
+{
+	guage=document.getElementById('guage')
+	guage_doc=guage.getSVGDocument()
+	guage_win=guage_doc.defaultView
+	guage.set=guage_win.set
+	guage.set(0)
+}
+
+week23=["history", "unlikely", "remember", "athletic", "religion", "citizen", "animal", "magazine", "popular", "artistic", "yesterday", "stadium", "horrible", "beautiful", "serious", "vehicle", "opposite", "impression", "electric", "chocolate"]
+week24=["louder", "scientist", "warrior", "director", "scariest", "slightest", "prisoner", "sweeper", "novelist", "greater", "emperor", "busiest", "tourist", "drearier", "interpreter", "hungrier", "counselor", "inspector", "cartoonist", "vocalist"]
+first_grade=["when", "your", "pop", "said", "mop", "top", "hop", "drop", "there", "use", "an", "each", "job", "mob", "cob", "rob", "been", "called", "who", "oil", "win", "lip", "kid", "ship"]
+
+$(function() {
+	$( "#wordlist tbody" ).sortable( {
+update: check_sort
+	} );
+	$( "#wordlist tbody" ).disableSelection();
+});
+
+window.onload=init
+</script>
+	</head>
+	<body>
+<div id="spelling">
+<div id="icon-tray">
+	<img id="repeat" class="icon" src="img/speach.svg"/>
+	<img id="check" class="icon" src="img/check.svg"/>
+</div>
+<p id="correct">&nbsp;</p>
+<p id="attempt"></p>
+</div>
+<div id="sorting">
+<object id="guage" type="image/svg+xml" data="img/guage.svg"></object>
+<table id="wordlist">
+<tbody>
+</tbody>
+</table>
+</div>
+	</body>
+</html>
