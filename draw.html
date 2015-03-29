@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Spelling</title>
+			<script src="js/pnglib.js"></script>
+			<script src="js/bezier.js"></script>
+			<script src="js/display.js"></script>
+			<script src="js/animator.js"></script>
+			<script src="js/colormap.js"></script>
+			<script src="js/sprite.js"></script>
+			<script src="js/util.js"></script>
+			<script src="js/jquery.js"></script>
+			<script src="js/jquery-ui/jquery-ui.js"></script>
+			<script src="js/colpick.js" type="text/javascript"></script>
+			<link rel="stylesheet" href="js/colpick.css" type="text/css"/>
+<style>
+* {
+	padding: 0;
+	margin: 0;
+}
+
+@font-face {
+	font-family: 'Gotham';
+	src: local('Gotham'), local('Gotham-Book'), url(font/gotham-book.woff);
+}
+
+@font-face {
+	font-family: 'Roboto';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Roboto'), local('Roboto-Regular'), url(font/roboto-normal-400.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Dancing Script';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Dancing Script'), local('DancingScript'), url(font/dancing_script.ttf) format('truetype');
+}
+
+body {
+	font-family: 'Roboto', sans-serif;
+}
+
+#map {
+	display: block;
+	margin-top: 30px;
+	border: 1px solid #cccccc;
+	margin-left: auto;
+	margin-right: auto;
+	width: 400px
+}
+
+.color-box {
+	margin:0;
+	padding:0;
+	border:0;
+	width:0;
+	height:20px;
+	border-right:20px solid green;
+	line-height:20px;
+}
+
+</style>
+<script>
+var display;
+var rocket;
+var startColor="000000";
+var endColor="aaaaaa";
+
+$( document ).ready( function() {
+	// $( "#wordlist tbody" ).sortable( { update: check_sort } );
+	// $( "#wordlist tbody" ).disableSelection();
+	display=new Display($("#map")[0],200,200)	
+
+	$('#color-start').css('border-right','20px solid #'+startColor)
+	$('#color-start').colpick({
+	color: startColor,
+	layout:'hex',
+	submit:0,
+	colorScheme:'dark',
+	onChange:function(hsb,hex,rgb,el,bySetColor) {
+		$(el).css('border-color','#'+hex);
+		// Fill the text box just if the color was set using the picker, and not the colpickSetColor function.
+		if(!bySetColor) $(el).val(hex);
+		startColor=hex;
+	}
+	}).keyup(function(){ $(this).colpickSetColor(this.value);  });
+
+	$('#color-end').css('border-right','20px solid #'+endColor)
+	$('#color-end').colpick({
+	color: endColor,
+	layout:'hex',
+	submit:0,
+	colorScheme:'dark',
+	onChange:function(hsb,hex,rgb,el,bySetColor) {
+		$(el).css('border-color','#'+hex);
+		// Fill the text box just if the color was set using the picker, and not the colpickSetColor function.
+		if(!bySetColor) $(el).val(hex);
+		endColor=hex;
+	}
+	}).keyup(function(){ $(this).colpickSetColor(this.value);  });
+
+	var i=new Image()
+	i.addEventListener('load',function() { addRocket(i) })
+	i.src='img/rocket.svg'
+});
+
+function addRocket(i)
+{
+	rocket=new ImageSprite({'image':i,'x':100,'y':100});
+	rocket.scale(.5); 
+	display.add(rocket) 
+
+	o1=new CircularPath(40,50,25,1,0,4*Math.PI)
+	path=new BezierPath([40,200,200,360],[25,25,175,175])
+	o2=new CircularPath(360,150,25,'ccw',Math.PI,3*Math.PI)
+	mp=new MultiPath([o1,path,o2],[25,50,25])
+	animator=new Animator(60,display)
+	animator.start()
+	animator.add(rocket,mp,5)
+}
+
+</script>
+	</head>
+	<body>
+
+	<div id="map" width="400" height="400"></div>
+	<div style="width: 50px; margin-left: auto; margin-right: auto; margin-top: 5px">
+		<input type="text" id="color-start" class="color-box">
+		<input type="text" id="color-end" class="color-box">
+	</div>
+	</body>
+</html>
