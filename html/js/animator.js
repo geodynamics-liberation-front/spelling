@@ -116,43 +116,28 @@ CircularPath.prototype.getPosition = function(dt)
 			'theta':this.direction*Math.PI/2+theta}
 } 
 
-function LinePath(x1,y1,x2,y2)
+
+function FunctionPath(f,dt)
 {
-	this.x0=x1
-	this.y0=y1
-	var dx=(x2-x1)
-	var dy=(y2-y1)
-	this.m=(y2-y1)/(x2-x1)
-	this.b=y1-this.m*x1
-	this.l=Math.sqrt(dx*dx + dy*dy)
+	this.f=f
+	this.dt=dt||0.01
 }
 
-LinePathprototype.getPosition(t)
-{
-	
-}
-
-function BezierPath(x,y)
-{
-	this.b=bezier(x,y)
-	this.dt=0.01
-}
-
-BezierPath.prototype.getPosition = function(t)
+FunctionPath.prototype.getPosition = function(t)
 {
 	var p
 	var p1
 	var p2	
 	if( t==1 )
 	{
-		p1=this.b(t-this.dt)
-		p2=this.b(t)
+		p1=this.f(t-this.dt)
+		p2=this.f(t)
 		p=p2
 	}
 	else
 	{
-		p1=this.b(t)
-		p2=this.b(Math.min(1,t+this.dt))
+		p1=this.f(t)
+		p2=this.f(Math.min(1,t+this.dt))
 		p=p1
 	}
 	var dx=p2.x-p1.x
@@ -161,25 +146,40 @@ BezierPath.prototype.getPosition = function(t)
 	return p;
 } 
 
-
-function MultiPath(paths,amount)
+function LinePath(x1,y1,x2,y2)
 {
-	this.anorm=norm(amount)
-	this.amount=cumsum(norm(amount))
+	var dx=(x2-x1)
+	var dy=(y2-y1)
+	this.base = FunctionPath
+	this.base(function(t) { return {'x':dx*t, 'y':dy*t} })
+}
+LinePath.prototype=new FunctionPath
+
+function BezierPath(x,y,dt)
+{
+	this.base = FunctionPath
+	this.base(bezier(x,y),dt)
+}
+BezierPath.prototype=new FunctionPath
+
+function MultiPath(paths,weights)
+{
+	this.weights_norm=norm(weights)
+	this.weights=cumsum(norm(weights))
 	this.paths=paths
 }
 
 MultiPath.prototype.getPosition = function(t)
 {
 	var n
-	for( n=0; n<this.amount.length; n++ )
+	for( n=0; n<this.weights.length; n++ )
 	{
-		if( (this.amount[n-1]||(-1)<t) && (this.amount[n]>=t) )
+		if( (this.weights[n-1]||(-1)<t) && (this.weights[n]>=t) )
 		{ 
 			break; 
 		}
 	}
-	t=(t-(this.amount[n-1]||0))/this.anorm[n]
+	t=(t-(this.weights[n-1]||0))/this.weights_norm[n]
 	return this.paths[n].getPosition(t)
 }
 

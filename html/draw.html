@@ -112,8 +112,10 @@ function addRocket(i)
 	rocket.scale(.5); 
 	display.add(rocket) 
 
-	o1=new CircularPath(40,50,25,1,0,4*Math.PI)
+	o1=new CircularPath(40,50,25,'cw',0,2*Math.PI)
 	path=new BezierPath([40,200,200,360],[25,25,175,175])
+//	path=new LinePath(40,25,360,175)
+//	path=new StillPath()
 	o2=new CircularPath(360,150,25,'ccw',Math.PI,3*Math.PI)
 	mp=new MultiPath([o1,path,o2],[25,50,25])
 	animator=new Animator(60,display)

@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Spelling</title>
+			<script src="js/bezier.js"></script>
 			<script src="js/jquery.js"></script>
 			<script src="js/jquery-ui/jquery-ui.js"></script>
 <style>
@@ -41,8 +42,27 @@
 }
 
 body {
-	padding: 30px;
 	font-family: 'Roboto', sans-serif;
+}
+
+.nav {
+	display: inline-block; 
+	padding-top: 25vh;
+	opacity: .5;
+}
+
+#slides {
+	position: absolute;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.slide {
+	padding-top: 30px;
+	display: inline-block;
+	width: 100%;
+	vertical-align: top;
 }
 
 #correct {
@@ -50,6 +70,9 @@ body {
 	color: #c3c3c3;
 	font-size: 38pt;
 	text-align: center;
+	margin-right: auto;
+	margin-left: auto;
+	display: block;
 }
 
 #attempt {
@@ -57,23 +80,27 @@ body {
 	color: #737373;
 	font-size: 48pt;
 	text-align: center;
-	width: 100%;
+	margin-right: auto;
+	margin-left: auto;
+	display: block;
 }
 
 #icon-tray {
 	height: 100px;
+	width: 100px;
 	text-align: center;
+	margin-right: auto;
+	margin-left: auto;
+	display: block;
 }
 
 #spelling {
-	display: none;
+	text-align: center;
 }
 
 .icon {
 	transition-property: opacity;
 	transition-duration: 0.5s;
-	position: absolute;
-	margin-left: -50px;
 }
 
 #repeat {
@@ -82,15 +109,99 @@ body {
 
 #check {
 	opacity: 0.0;
+	margin-left: -100%;
 }
 
-#wordlist { margin: 0; padding: 0; border-collapse: collapse}
+#map {
+	border: 1px solid black;
+	width: 100%;
+	height: 100px;
+}
+
+#sorting {
+	text-align: center;
+}
+
+#guage {
+	margin-right: auto;
+	margin-left: auto;
+	display: block;
+}
+
+#wordlist { 
+	margin-top: .5em;
+	margin-right: auto;
+	margin-left: auto;
+	text-align: initial;
+	display: inline-block;
+	list-style-type: none; 
+	-webkit-column-count: 2;
+	column-count: 2
+}
+#wordlist li {
+	cursor: move;
+}
+
+/*
 #wordlist tr { margin: 3px; padding: 0.2em; padding-left: 1.5em; font-size: 1.4em; cursor: pointer; border: 1px solid black; vertical-align: baseline}
 #wordlist td { padding: 0.2em; }
+*/
 #wordlist .print { padding-left: .5em; font-family: 'Roboto' }
 #wordlist .cursive { padding-left: 1em; font-family: 'Dancing Script'; font-size: 1.6em; }
 </style>
 <script>
+// slides
+var slide_transition_duration=1000
+var slide=0
+var current_slide=null;
+
+function slide_init()
+{
+	$("#slides :first").css({'transition-duration': (slide_transition_duration/1000)+'s', 'transition-property': 'margin-left', 'transition-timing-function':'ease-in-out'});
+	current_slide=$("#slides .slide")[0]
+	goto_slide(0)
+}
+
+function slide_forward()
+{
+	slide++;
+	goto_slide(slide)
+}
+
+function slide_backward()
+{
+	slide--
+	goto_slide(slide)
+}
+
+function goto_slide(s)
+{
+	var going_to=$("#slides .slide")[s]
+	e={'name':'leave','from_slide':current_slide,'to_slide':going_to}
+	dispatch_slide_event(current_slide,e)
+	$("#slides :first").css({'margin-left':(-100*s)+'%'})
+	e.name='enter'
+	current_slide=going_to
+	dispatch_slide_event(current_slide,e,slide_transition_duration)
+}
+
+function dispatch_slide_event(slide,e,delay)
+{
+	delay=delay||0
+	var f='slide_'+slide.id+'_'+e.name
+	if( f in window )
+	{
+		console.log('dispatching event to '+f)
+		setTimeout( function(){window[f](e)},delay)	
+	}
+}
+
+function slide_spelling_enter(e)
+{
+	next_word()
+}
+
+// Text to speach
 var tts_url="tts.php"
 
 // word list
@@ -124,25 +235,28 @@ function make_audio(url) {
 function word_list(list) {
 	words=list
 	deck=[]
-	wordlist=$('#wordlist tbody')
+	wordlist=$('#wordlist')
 	for( var i=0; i<words.length; i++ )
 	{
 		for(var j=0; j<success_count; j++ )
 		{
 			deck[i*success_count+j]=i;
 		}
-		var tr=document.createElement('tr')
-		wordlist.append(tr)
+		var li=document.createElement('li')
+		wordlist.append(li)
 
-		var p=document.createElement('td')
+		// var tr=document.createElement('tr')
+		// wordlist.append(tr)
+
+		var p=document.createElement('span')
 		p.innerHTML=words[i]
 		p.className="print"
-		tr.appendChild(p)
+		li.appendChild(p)
 
-		var c=document.createElement('td')
+		var c=document.createElement('span')
 		c.innerHTML=words[i]
 		c.className="cursive"
-		tr.appendChild(c)
+		li.appendChild(c)
 	}
 	
 }
@@ -185,7 +299,7 @@ function keydown(evt)
 function keypress(evt)
 {
 	w=evt.which
-	console.log(w)
+	// console.log(w)
 	if( w==13 )
 	{
 		check()
@@ -294,6 +408,7 @@ function incorrect_ended(e)
 
 function init()
 {
+	console.log('init()')
 	// Setup the icons
 	document.getElementById('repeat').addEventListener('click',repeat)
 	document.getElementById('check').addEventListener('click',repeat)
@@ -307,9 +422,7 @@ function init()
 	correct.addEventListener('ended',correct_ended)
 	incorrect.addEventListener('ended',incorrect_ended)
 	set_volume()
-	word_list(week24)
-	init_svg()
-	next_word()
+	word_list(week30)
 }
 
 function init_svg()
@@ -321,35 +434,51 @@ function init_svg()
 	guage.set(0)
 }
 
-week23=["history", "unlikely", "remember", "athletic", "religion", "citizen", "animal", "magazine", "popular", "artistic", "yesterday", "stadium", "horrible", "beautiful", "serious", "vehicle", "opposite", "impression", "electric", "chocolate"]
-week24=["louder", "scientist", "warrior", "director", "scariest", "slightest", "prisoner", "sweeper", "novelist", "greater", "emperor", "busiest", "tourist", "drearier", "interpreter", "hungrier", "counselor", "inspector", "cartoonist", "vocalist"]
+week23=["history","unlikely","remember","athletic","religion","citizen","animal","magazine","popular","artistic","yesterday","stadium","horrible","beautiful","serious","vehicle","opposite","impression","electric","chocolate"]
+week24=["louder","scientist","warrior","director","scariest","slightest","prisoner","sweeper","novelist","greater","emperor","busiest","tourist","drearier","interpreter","hungrier","counselor","inspector","cartoonist","vocalist"]
+week25=["bisect","blue-green","conserve","consoled","exist","forbid","fossil","manners","mental","mission","normal","posture","reduce","rubble","silence","slightest","sweeper","tourist","vocalist","warrior"]
 first_grade=["when", "your", "pop", "said", "mop", "top", "hop", "drop", "there", "use", "an", "each", "job", "mob", "cob", "rob", "been", "called", "who", "oil", "win", "lip", "kid", "ship"]
+week28=["possible","excitement","terrible","neighborhood","leadership","membership","equipment","profitable","ownership","falsehood","championship","statement","sensible","motherhood","dependable","comfortable","visible","likelihood","agreeable","durable"]
+week29=["direction", "protection", "allowance", "equality", "selective", "population", "massive", "captive", "humidity", "vacation", "importance", "opinion", "election", "humanity", "objection", "confidence", "imitation", "attendance", "originality", "independence" ]
+week30=[ "shredded", "planned", "pledged", "throbbing", "spinning", "hoping", "decided", "strangest", "shipping", "usable", "valuable", "pleasing", "scraping", "skidded", "imagination", "introducing", "disapproved", "unforgivable", "persuaded", "amazing"]
 
-$(function() {
-	$( "#wordlist tbody" ).sortable( {
-update: check_sort
-	} );
-	$( "#wordlist tbody" ).disableSelection();
+$( window ).load( function() {
+	// $( "#wordlist tbody" ).sortable( { update: check_sort } );
+	// $( "#wordlist tbody" ).disableSelection();
+	$( "#wordlist" ).sortable( { update: check_sort } );
+	$( "#wordlist" ).disableSelection();
+	init();
+	init_svg()
+	slide_init();
 });
-
-window.onload=init
 </script>
 	</head>
 	<body>
-<div id="spelling">
-<div id="icon-tray">
-	<img id="repeat" class="icon" src="img/speach.svg"/>
-	<img id="check" class="icon" src="img/check.svg"/>
+<div id="navigation" style="float: left; width: 100%">
+<a class="nav" style="float: left;"><img id="left" src="img/left.svg"/></a>
+<a class="nav" style="float: right;"><img id="right" src="img/right.svg"/></a>
 </div>
-<p id="correct">&nbsp;</p>
-<p id="attempt"></p>
+
+
+<div id="slides">
+
+<div id="sorting" class="slide">
+	<object id="guage" type="image/svg+xml" data="img/guage.svg"></object>
+	<ul id="wordlist">
+	</ul>
+	<a>Continue</a>
 </div>
-<div id="sorting">
-<object id="guage" type="image/svg+xml" data="img/guage.svg"></object>
-<table id="wordlist">
-<tbody>
-</tbody>
-</table>
+<div id="spelling" class="slide">
+	<div id="icon-tray">
+		<img id="repeat" class="icon" src="img/speach.svg"/>
+		<img id="check" class="icon" src="img/check.svg"/>
+	</div>
+	<p id="correct">&nbsp;</p>
+	<p id="attempt"></p>
+	<canvas id="map"></canvas>
 </div>
+
+</div>
+
 	</body>
 </html>
